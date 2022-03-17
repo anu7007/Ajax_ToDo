@@ -1,136 +1,142 @@
 $(document).ready(function () {
-
-    $.ajax({
-        method: "POST",
+    $(document).on("click", "#addBtn", function () {
+      
+      $.ajax({
         url: "todo.php",
-        data: { name: $("#tskid").val(), action: "start" },
-        dataType: "JSON"
-    }).done(function (data) {
-        console.log(data);
-        disply(data)
-        disply2(data)
-    });
-
-    $("#btn").show();
-    $("#updatebtn").hide();
-
-});
-
-$("#btn").click(function (e) {
-    e.preventDefault();
-
-
-    $.ajax({
         method: "POST",
-        url: "todo.php",
-        data: { name: $("#tskid").val(), action: "add" },
-        dataType: "JSON"
-    }).done(function (data) {
-        console.log(data);
-        disply(data)
+        data: { input: $("#new-task").val() },
+      }).done(function (data) {
+        
+        d = $.parseJSON(data);
+        displayTodo(d);
+        $("#new-task").val("");
+      });
     });
-
-})
-$("#updatebtn").click(function (e) {
-    e.preventDefault();
-    $.ajax({
+  });
+  $(document).ready(function () {
+    $("#incomplete-tasks").on("click", "#delete", function () {
+      $.ajax({
+        url: "todo.php",
         method: "POST",
-        url: "todo.php",
-        data: { name: $("#tskid").val(), action: "update", id: $("#hidenid").val() },
-        dataType: "JSON"
-    }).done(function (data) {
-        console.log(data);
-        disply(data)
-
-        $("#btn").show();
-        $("#updatebtn").hide();
+        data: { "input-pos": $(this).data("index") },
+        datatype: "JSON",
+      }).done(function (data) {
+        console.log("hii");
+        d = $.parseJSON(data);
+        displayTodo(d);
+      });
     });
-
-})
-
-
-$("#alllist").on("click", ".editbtn", function () {
-
-    $("#btn").hide();
-    $("#updatebtn").show();
-
-
-    let id = $(this).data('pid');
-    let txt = $(this).data('text');
-    $("#tskid").val(txt);
-    $("#hidenid").val(id);
-})
-
-$("#alllist").on("click", ".check", function () {
-
-    let pid = $(this).val();
-    $.ajax({
+  });
+  $(document).ready(function () {
+    $(document).on("click", ".edit", function () {
+      var index = $(this).data("ind");
+      $.ajax({
+        url: "todo.php",
         method: "POST",
-        url: "todo.php",
-        data: { id: pid, action: "check" },
-        dataType: "JSON"
-    }).done(function (data) {
-        console.log("after delete" + data);
-        console.log(data);
-        disply(data)
-        disply2(data)
-        console.log(pid);
+        data: { ipos: $(this).data("ind") },
+        datatype: "JSON",
+      }).done(function (data) {
+        d = $.parseJSON(data);
+        // displayTodo(d);
+        text1 = "";
+        text1 +=
+          '<input id="new-task" type="text"><button id="addBtn" name="addBtn">Add</button><button id="updateBtn" data-pid=' +
+          index +
+          ' name="updateBtn">Update</button>';
+        $("#para").html(text1);
+        $("#new-task").val(d[index]);
+        $("#addBtn").hide();
+        $("#updateBtn").show();
+        displayTodo(d);
+      });
     });
-    console.log(pid);
-
-})
-
-
-$("#alllist").on("click", ".delbtn", function () {
-
-    let pid = $(this).data('pid');
-    let txt = $(this).data('text');
-    $.ajax({
+  });
+  $(document).ready(function () {
+    $(document).on("click", "#updateBtn", function () {
+      $("#addBtn").show();
+      $("#updateBtn").hide();
+      $.ajax({
+        url: "todo.php",
         method: "POST",
-        url: "todo.php",
-        data: { id: pid, action: "delete" },
-        dataType: "JSON"
-    }).done(function (data) {
-        console.log("after delete" + data);
-        console.log(data);
-        disply(data)
-        console.log(pid);
+        data: { inputUpdt: $("#new-task").val(), myIndex: $(this).data("pid") },
+        datatype: "JSON",
+      }).done(function (data) {
+        d = $.parseJSON(data);
+        displayTodo(d);
+      });
     });
-
-})
-
-function disply(data) {
-    let list = "<ul>";
-    for (let i = 0; i < data.length; i++) {
-        let obj = data[i];
-        console.log(i);
-
-        if (obj['check'] == "f") {
-
-
-            list += "<li><input class=check value=" + obj['id'] + " type=checkbox >" + obj['name'] + "<a href=# data-pid=" + obj['id'] + " data-text=" + obj['name'] + " class=editbtn >edit</a><a href=# data-pid=" + obj['id'] + " data-text=" + obj['name'] + "  class=delbtn >delete</a></li>"
-
-
-        }
+  });
+  
+  $(document).ready(function () {
+    $("#incomplete-tasks").on("change", "#check", function () {
+      $.ajax({
+        url: "todo.php",
+        method: "POST",
+        data: { pos: $(this).data("check") },
+        datatype: "JSON",
+      }).done(function (data) {
+        d = $.parseJSON(data);
+        displayTodo(d["incomplete"]);
+        displayComplete(d["complete"]);
+      });
+    });
+  });
+  
+  $(document).ready(function () {
+    $("#completed-tasks").on("change", "#check", function () {
+      $.ajax({
+        url: "todo.php",
+        method: "POST",
+        data: { pos: $(this).data("check") },
+        datatype: "JSON",
+      }).done(function (data) {
+        d = $.parseJSON(data);
+        displayTodo(d["incomplete"]);
+        displayComplete(d["complete"]);
+      });
+    });
+  });
+  
+  $(document).ready(function () {
+    $("#completed-tasks").on("click", "#delete1", function () {
+      $.ajax({
+        url: "todo.php",
+        method: "POST",
+        data: { "input-posit": $(this).data("index1") },
+        datatype: "JSON",
+      }).done(function (data) {
+        d = $.parseJSON(data);
+        displayComplete(d);
+      });
+    });
+  });
+  function displayTodo(myData) {
+    var text = "";
+    for (i = 0; i < myData.length; i++) {
+      text +=
+        '<li><input type="checkbox" data-check=' +
+        i +
+        ' id="check" name="check"><label>' +
+        myData[i] +
+        '</label><input type="text"><button id="edit" data-ind=' +
+        i +
+        ' name="editBtn" class="edit">Edit</button><button id="delete" data-index=' +
+        i +
+        ' class="delete" name="deleteBtn">Delete</button></li>';
     }
-    list += "</ul>";
-    $("#alllist").html(list);
-    $("#tskid").val("");
-}
-
-function disply2(data) {
-    let list = "<ul>";
-    for (let i = 0; i < data.length; i++) {
-        let obj = data[i];
-        console.log(i);
-
-        if (obj['check'] == "t") {
-
-
-            list += "<li><input class=check value=" + obj['id'] + " type=checkbox >" + obj['name'] + "<a href=# data-pid=" + obj['id'] + " data-text=" + obj['name'] + " class=editbtn >edit</a><a href=# data-pid=" + obj['id'] + " data-text=" + obj['name'] + "  class=delbtn >delete</a></li>"
-       }
+    $("#incomplete-tasks").html(text);
+  }
+  function displayComplete(myData) {
+    var text = "";
+    for (i = 0; i < myData.length; i++) {
+      text +=
+        '<li><input type="checkbox" checked name="check"><label>' +
+        myData[i] +
+        '</label><input type="text"><button id="delete1" data-index1=' +
+        i +
+        ' class="delete" name="deleteBtn">Delete</button></li><input type="text" hidden name="myVal" value="' +
+        i +
+        '">';
     }
-    list += "</ul>";
-    $("#completed").html(list);
-    $("#tskid").val("");
-}
+    $("#completed-tasks").html(text);
+  }

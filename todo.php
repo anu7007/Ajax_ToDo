@@ -1,97 +1,54 @@
 <?php
 session_start();
-if (!isset($_SESSION['todo'])) {
-
-  $_SESSION['todo'] = array();
-}
-$chose = $_POST['action'];
-$tsk = $_POST['name'];
-$id = $_POST['id'];
-if ($chose == 'start') {
-  echo json_encode($_SESSION['todo']);
-}
-
-
-switch ($chose) {
-
-
-  case "add":
-    add($tsk);
-    echo json_encode($_SESSION['todo']);
-    break;
-
-  case 'delete':
-    delete($id);
-    echo json_encode($_SESSION['todo']);
-    break;
-
-  case "update":
-    update($tsk, $id);
-    echo json_encode($_SESSION['todo']);
-    break;
-
-  case "check":
-    complete($id);
-    echo json_encode($_SESSION['todo']);
-    break;
-}
-
-function add($tsk)
+function displayTodo()
 {
-  $num = count($_SESSION['todo']) + 1;
-  $task = array(
-    "id" => $num,
-    "name" => $tsk,
-    "check" => "f",
-
-  );
-  array_push($_SESSION['todo'], $task);
+    if (isset($_SESSION['incomplete'])) {
+        foreach ($_SESSION['incomplete'] as $key => $value) {
+            echo '<li><input type="checkbox"><label>' . $value . '</label><input type="text"><button class="edit">Edit</button><button class="delete">Delete</button></li>';
+        }
+    } else echo "";
 }
-function update($tsk, $id)
-{
-  foreach ($_SESSION['todo'] as $k => $arr) {
-
-    if ($arr['id'] == $id) {
+if (isset($_POST['input'])) {
+    if (isset($_SESSION['incomplete'])) {
+      if(!empty($_POST['input'])){
+        array_push($_SESSION['incomplete'], $_POST['input']);
+    } 
+  }else {
+        $_SESSION['incomplete'] = array($_POST['input']);
+    }
   
-      $_SESSION['todo'][$k]['name'] = $tsk;
-      break;
-    }
-  }
 }
-
-function delete($id)
-{
-  foreach ($_SESSION['todo'] as $k => $arr) {
-    if ($arr['id'] == $id) {
-    array_splice($_SESSION['todo'], $k, 1);
-      return;
-    }
-  }
+if (isset($_POST['input-pos'])) {
+    array_splice($_SESSION['incomplete'], $_POST['index-pos'], 1);
 }
-
-
-function disply()
-{
-  $list = "";
-  foreach ($_SESSION['todo'] as $k => $arr) {
-
-    if ($arr['check'] == "f") {
-
-      $list .= "<form action='' method=GET><li><h4> <input type=hidden name=id value=" . $k . ">><input type=checkbox name=action value=check onChange=this.form.submit()><label><h3 style=width:60px%>" . $arr['name'] . "</h3><a  &nbsp&nbsp href=todo.php?id=" . $k . "&action=edit&val=" . $arr['name'] . ">edit&nbsp</a><a href=todo.php?id=" . $k . "&action=delete>delete</a> </h4></li></form>";
+if (isset($_POST['inputUpdt'])) {
+    if (isset($_SESSION['incomplete'])) {
+        foreach ($_SESSION['incomplete'] as $key => $value) {
+            if ($key == $_POST['myIndex']) {
+                $_SESSION['incomplete'][$key] = $_POST['inputUpdt'];
+            }
+        }
     }
-  }
-  echo $list;
 }
-
-function complete($id)
-{
-
-  foreach ($_SESSION['todo'] as $k => $arr) {
-
-    if ($arr['id'] == $id) {
-
-
-      $_SESSION['todo'][$k]['check'] = "t";
+if (isset($_POST['pos'])) {
+    $_SESSION['temp'] = $_SESSION['incomplete'][$_POST['pos']];
+    array_splice($_SESSION['incomplete'], $_POST['pos'], 1);
+    if (isset($_SESSION['complete'])) {
+        array_push($_SESSION['complete'], $_SESSION['temp']);
+    } else {
+        $_SESSION['complete'] = array($_SESSION['temp']);
     }
-  }
+    $myArr = array();
+    $myArr['incomplete'] = $_SESSION['incomplete'];
+    $myArr['complete'] = $_SESSION['complete'];
+    echo json_encode($myArr);
+
+} elseif (isset($_POST['index-posit'])) {
+    array_splice($_SESSION['complete'], $_POST['index-posit'], 1);
+    echo json_encode($_SESSION['complete']);
+} else {
+    if (isset($_SESSION['incomplete'])) {
+        echo json_encode($_SESSION['incomplete']);
+    }
 }
+?>
